@@ -1,0 +1,86 @@
+//模板需要修改的值：label(配置的jenkins的slave标签),cloud:(配置的jenkins的cloud)
+def label = "jenkins-slave-js"
+
+podTemplate(label: label , cloud: 'kubernetes-js') {
+  node(label) {
+    myRepo = checkout scm
+    def gitBranch = myRepo.GIT_BRANCH.replaceAll("origin/","").replaceAll("/","-").replaceAll("\\.","-")
+    def dockerRegistryUrl = "69.172.74.253:8080"
+    def imageTag = "${gitBranch}"
+    def timestamp = sh(script: "echo `date '+%Y%m%d%H%M%S'`", returnStdout: true).trim()
+    def gitCommit = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+    gitCommit = "${gitCommit}_${timestamp}"
+
+    def mainName = "ewalkcloud"
+    def appName = "childweb"
+    
+    //docker镜像值
+    def imageEndpoint = "${mainName}/${appName}"
+
+    def image = "${dockerRegistryUrl}/${imageEndpoint}"
+    def namespace = "${mainName}"
+    def helmReleaseName = "${appName}"
+
+    //helmChart模版值
+    def chartName = "${mainName}"
+    def chartVersion = "1"
+    def chartDirName = "${mainName}/${appName}"
+    def serviceType = "NodePort"
+    def serviceNodeport = "30007"
+    def helmInit = "ls"
+    def helmCmd = " upgrade "
+    
+    sh(script: "pwd")
+    
+    stage('构建 Docker 镜像阶段') {
+        container('构建 Docker 镜像') {
+          withCredentials([[$class: 'UsernamePasswordMultiBinding',
+            credentialsId: 'docker-harbor',
+            usernameVariable: 'DOCKER_HUB_USER',
+            passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+              container('docker') {
+                sh """
+                  docker login ${dockerRegistryUrl} -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
+                  docker build -t ${imageEndpoint}:${imageTag} .
+                  docker tag ${imageEndpoint}:${imageTag}   ${dockerRegistryUrl}/${imageEndpoint}:${imageTag}
+                  docker push ${image}:${imageTag}
+                  """
+              }
+          }
+        }
+    }
+
+    stage('Helm 部署阶段') {
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+        credentialsId: 'docker-harbor',
+        usernameVariable: 'DOCKER_HUB_USER',
+        passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+            container('helm') {
+                echo "[INFO] 开始 Helm 部署"
+                echo "1 初始化helm client"
+                sh "${helmInit}"
+                sh "helm repo add --username ${DOCKER_HUB_USER} --password ${DOCKER_HUB_PASSWORD} ${chartName} http://${dockerRegistryUrl}/chartrepo/${chartName}"
+                echo "2 如果更新了chart包则需要更新repo"
+                sh "helm repo update"
+                echo "3 更新 ${helmReleaseName} 应用"
+                sh """
+                    helm ${helmCmd} ${helmReleaseName} ${chartDirName} \
+                    --version ${chartVersion} \
+                    --set namespace=${namespace} \
+                    --set gitCommit=${gitCommit} \
+                    --set gitBranch=${gitBranch} \
+                    --set productionDeployment.image.repository=${image} \
+                    --set canaryDeployment.image.repository=${image} \
+                    --set productionDeployment.image.tag=${imageTag} \
+                    --set canaryDeployment.image.tag=testing \
+                    --set service.type=${serviceType} \
+                    --set service.nodePort=${serviceNodeport} \
+                    --namespace=${namespace}
+                    """
+                echo "[INFO] Helm 部署应用成功..."
+            }
+        }
+    }
+
+  }
+}
