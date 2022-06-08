@@ -1,5 +1,5 @@
 {
-  "name": "child",
+  "name": "{{rje_projectName}}",
   "version": "0.1.0",
   "private": true,
   "scripts": {
