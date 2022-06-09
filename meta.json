@@ -3,7 +3,7 @@
     "rje_projectName": {
       "type": "string",
       "required": true,
-      "label": "Project name"
+      "label": "rje_projectName"
     },
     "description": {
       "type": "string",
