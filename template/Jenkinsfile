@@ -12,7 +12,7 @@ podTemplate(label: label , cloud: 'kubernetes-js') {
     gitCommit = "${gitCommit}_${timestamp}"
 
     def mainName = "ewalkcloud"
-    def appName = "childweb"
+    def appName = "{{name}}web"
     
     //docker镜像值
     def imageEndpoint = "${mainName}/${appName}"
@@ -26,7 +26,7 @@ podTemplate(label: label , cloud: 'kubernetes-js') {
     def chartVersion = "1"
     def chartDirName = "${mainName}/${appName}"
     def serviceType = "NodePort"
-    def serviceNodeport = "30007"
+    def serviceNodeport = "{{port}}"
     def helmInit = "ls"
     def helmCmd = " upgrade --install "
     
