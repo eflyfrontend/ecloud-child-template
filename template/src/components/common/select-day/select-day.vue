@@ -7,6 +7,7 @@
  * @FilePath: \efly-ui\src\components\efly\select\select.vue
 -->
 <template>
+    {{{{raw-helper}}}}
     <div class="efly-select" :class="{
 	    disabled : status.disabled,
 	    'efly-select-small': size === 'small',
@@ -55,6 +56,7 @@
             </div>
         </div>
     </div>
+    {{{{/raw-helper}}}}
 </template>
 
 <script>
