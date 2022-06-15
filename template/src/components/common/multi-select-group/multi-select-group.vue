@@ -1,5 +1,6 @@
 <script src="multi-select-group.ts"></script>
 <template>
+	  {{{{raw-helper}}}}
 	<div class="multi-select-item-group">
 		<div class="multi-select-item" v-for="(item,index) in list.data">
 			<div class="multi-select-item-label" :class="{
@@ -27,6 +28,7 @@
 			<multi-select-group v-if="item[children].length > 0 && item.groupShow" :data="item[children]" :label="label" :children="children" :indent="indent+15" :tier="tier+'-'+index"></multi-select-group>
 		</div>
 	</div>
+	  {{{{/raw-helper}}}}
 </template>
 
 <script>
