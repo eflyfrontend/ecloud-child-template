@@ -7,6 +7,7 @@
  * @FilePath: \exclusive-cloud\manage\resource\src\views\securityGroup\detail-list\optlog\list\list.vue
 -->
 <template>
+	{{{{raw-helper}}}}
 	<div class="securityGroup-list-container">
 		<page-header
 				title="余额充值记录"
@@ -172,6 +173,7 @@
 			</div>
 		</div>
 	</div>
+	{{{{/raw-helper}}}}
 </template>
 
 <script>

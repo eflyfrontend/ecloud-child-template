@@ -1,4 +1,5 @@
 <template>
+	{{{{raw-helper}}}}
 	<div class="multi-select-container" :style="'height:'+ height">
 		<div class="multi-select-content">
 			<div class="multi-select-item" v-for="(item,index) in list.data">
@@ -26,6 +27,7 @@
 			</div>
 		</div>
 	</div>
+	{{{{/raw-helper}}}}
 </template>
 
 <script>
